@@ -1,4 +1,4 @@
-name: Verify Interactive Geometry Preview
+name: Verify Direct Student Portal
 on:
   push:
     branches: [main]
@@ -11,16 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate JavaScript syntax
+      - name: Validate JavaScript
         run: node --check geometry-art-grade5/app.js
-      - name: Check alternate shareable preview
+      - name: Check direct HTML hosting on CDN
         run: |
-          set -e
-          root="https://raw.githack.com/TheSurvivor-23/The-Survivor0/main/geometry-art-grade5"
-          curl --fail --location --silent --show-error --max-time 40 "$root/index.html" -o /tmp/geometry-index.html
-          curl --fail --location --silent --show-error --max-time 40 "$root/style.css" -o /tmp/geometry-style.css
-          curl --fail --location --silent --show-error --max-time 40 "$root/app.js" -o /tmp/geometry-app.js
-          grep -q 'الهندسة فن' /tmp/geometry-index.html
-          grep -q 'const MEETINGS' /tmp/geometry-app.js
-          node --check /tmp/geometry-app.js
-          wc -c /tmp/geometry-index.html /tmp/geometry-style.css /tmp/geometry-app.js
+          set -eu
+          root="https://rawcdn.githack.com/TheSurvivor-23/The-Survivor0/96c4731c9351747d6b511cc96678a46cab11ed76/geometry-art-grade5"
+          for name in index.html style.css app.js; do
+            echo "### Checking $name"
+            curl --fail --location --silent --show-error --max-time 40 -D "/tmp/$name.headers" "$root/$name" -o "/tmp/$name.body"
+            head -n 20 "/tmp/$name.headers"
+            wc -c "/tmp/$name.body"
+          done
+          grep -q 'الهندسة فن' /tmp/index.html.body
+          grep -q 'const MEETINGS' /tmp/app.js.body
+          node --check /tmp/app.js.body
+          if grep -q 'HTML preview' /tmp/index.html.body; then exit 1; fi
