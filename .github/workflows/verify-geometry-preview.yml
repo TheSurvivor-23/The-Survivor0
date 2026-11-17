@@ -1,0 +1,26 @@
+name: Verify Interactive Geometry Preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'geometry-art-grade5/**'
+      - '.github/workflows/verify-geometry-preview.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JavaScript syntax
+        run: node --check geometry-art-grade5/app.js
+      - name: Check alternate shareable preview
+        run: |
+          set -e
+          root="https://raw.githack.com/TheSurvivor-23/The-Survivor0/main/geometry-art-grade5"
+          curl --fail --location --silent --show-error --max-time 40 "$root/index.html" -o /tmp/geometry-index.html
+          curl --fail --location --silent --show-error --max-time 40 "$root/style.css" -o /tmp/geometry-style.css
+          curl --fail --location --silent --show-error --max-time 40 "$root/app.js" -o /tmp/geometry-app.js
+          grep -q 'الهندسة فن' /tmp/geometry-index.html
+          grep -q 'const MEETINGS' /tmp/geometry-app.js
+          node --check /tmp/geometry-app.js
+          wc -c /tmp/geometry-index.html /tmp/geometry-style.css /tmp/geometry-app.js
