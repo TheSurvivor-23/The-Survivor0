@@ -25,5 +25,7 @@ jobs:
           done
           grep -q 'الهندسة فن' /tmp/index.html.body
           grep -q 'const MEETINGS' /tmp/app.js.body
-          node --check /tmp/app.js.body
+          cp /tmp/app.js.body /tmp/geometry-check.js
+          node --check /tmp/geometry-check.js
+          if grep -iq "HTML preview" /tmp/index.html.body; then exit 1; fi
           if grep -q 'HTML preview' /tmp/index.html.body; then exit 1; fi
